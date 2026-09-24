@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>型动健身 · XINGDONG FIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;
+  --bg-2:#111;
+  --ink:#f5f5f5;
+  --muted:#888;
+  --dim:#444;
+  --accent:#ccff00;
+  --accent-dim:rgba(204,255,0,.12);
+  --accent-glow:rgba(204,255,0,.4);
+  --line:rgba(255,255,255,.1);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Inter",system-ui,"PingFang SC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block;max-width:100%}
+canvas{display:block}
+
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* dumbbell cursor with trail */
+.db-trail{position:fixed;pointer-events:none;z-index:9998;width:28px;height:28px;transform:translate(-50%,-50%);opacity:.3}
+.db-trail svg{width:100%;height:100%}
+.dumbbell-cursor{position:fixed;pointer-events:none;z-index:9999;width:36px;height:36px;transform:translate(-50%,-50%);will-change:transform}
+.dumbbell-cursor svg{width:100%;height:100%;filter:drop-shadow(0 0 8px var(--accent-glow))}
+.dumbbell-cursor.hover{transform:translate(-50%,-50%) scale(1.5) rotate(20deg)}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:16px 40px;backdrop-filter:blur(10px);background:rgba(10,10,10,.5)}
+.nav-logo{display:flex;align-items:center;gap:14px}
+.nav-logo .logo-mark{width:64px;height:64px;position:relative;filter:drop-shadow(0 0 14px var(--accent-glow));transition:transform .4s}
+.nav-logo:hover .logo-mark{transform:scale(1.1)}
+.nav-logo .logo-mark svg{width:100%;height:100%}
+.nav-logo .logo-text{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1}
+.nav-logo .logo-text small{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.3em;color:var(--muted);font-weight:400;margin-top:3px}
+.nav-center{display:flex;gap:40px}
+.nav-center a{font-size:13px;color:var(--muted);letter-spacing:.02em;transition:color .2s;position:relative;padding:4px 0}
+.nav-center a::after{content:"";position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--accent);transition:width .3s}
+.nav-center a:hover{color:var(--accent)}
+.nav-center a:hover::after{width:100%}
+.nav-center a .sym{color:var(--accent);margin-left:2px}
+.nav-talk{font-size:13px;color:var(--ink);letter-spacing:.02em;display:flex;align-items:center;gap:6px;padding:10px 22px;border:1px solid var(--line);border-radius:100px;transition:all .3s}
+.nav-talk:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);box-shadow:0 0 20px var(--accent-dim)}
+.nav-talk .sym{color:var(--accent)}
+
+/* ── HERO ── */
+.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:center;padding:120px 60px 80px;overflow:hidden}
+.hero-photo{position:relative;z-index:2}
+.hero-photo .frame{border:1px solid var(--line);padding:12px;background:var(--bg-2);position:relative;overflow:hidden}
+.hero-photo .frame::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .5s;z-index:1;pointer-events:none}
+.hero-photo:hover .frame::before{opacity:1}
+.hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:grayscale(1) contrast(1.1);transition:filter .5s,transform .6s}
+.hero-photo:hover img{filter:grayscale(0) contrast(1.05);transform:scale(1.03)}
+.hero-photo .frame-tag{position:absolute;bottom:-1px;right:-1px;background:var(--accent);color:#000;font-size:10px;letter-spacing:.15em;padding:6px 12px;font-weight:700;z-index:2}
+.hero-text{position:relative;z-index:2}
+.hero-label{font-size:13px;color:var(--muted);margin-bottom:16px;letter-spacing:.02em;opacity:0;transform:translateY(20px);animation:fadeUp .8s .2s forwards}
+.hero-label .sym{color:var(--accent)}
+.hero-title{font-family:var(--serif);font-weight:400;font-size:clamp(36px,4.8vw,76px);line-height:1.05;letter-spacing:-.01em;margin-bottom:28px}
+.hero-title .char{display:inline-block;opacity:0;transform:translateY(50px) rotateX(70deg);animation:charIn .7s cubic-bezier(.23,1,.32,1) forwards}
+.hero-title em{font-style:italic;color:var(--muted)}
+.hero-title .accent{color:var(--accent);text-shadow:0 0 30px var(--accent-glow)}
+.hero-sub{font-size:15px;color:var(--muted);line-height:1.8;max-width:480px;margin-bottom:32px;opacity:0;transform:translateY(20px);animation:fadeUp .8s 1.4s forwards}
+.hero-cta{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--accent);color:var(--accent);padding:14px 28px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;opacity:0;transform:translateY(20px);animation:fadeUp .8s 1.7s forwards;position:relative;overflow:hidden}
+.hero-cta::before{content:"";position:absolute;inset:0;background:var(--accent);transform:translateX(-101%);transition:transform .4s;z-index:-1}
+.hero-cta:hover{color:#000;box-shadow:0 0 30px var(--accent-glow)}
+.hero-cta:hover::before{transform:translateX(0)}
+.hero-meta{display:flex;gap:40px;font-size:12px;color:var(--muted);letter-spacing:.05em;margin-top:40px;opacity:0;transform:translateY(20px);animation:fadeUp .8s 2s forwards}
+.hero-meta span strong{color:var(--ink);font-weight:600;display:block;font-size:14px;margin-bottom:2px}
+.hero-bottom{position:absolute;bottom:32px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:3;font-size:12px;color:var(--muted)}
+.hero-bottom .year{letter-spacing:.1em}
+.hero-bottom .scroll{display:flex;align-items:center;gap:8px;letter-spacing:.05em}
+.hero-bottom .scroll::before{content:"";width:24px;height:1px;background:var(--muted);animation:scrollLine 2s infinite}
+@keyframes scrollLine{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.4)}}
+.hero-bottom .start-btn{display:flex;align-items:center;gap:10px;border:1px solid var(--line);padding:10px 20px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);transition:all .3s}
+.hero-bottom .start-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hero-bottom .start-btn .arrow{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;transition:all .3s}
+.hero-bottom .start-btn:hover .arrow{border-color:var(--accent);background:var(--accent);color:#000}
+
+@keyframes charIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+/* ── MARQUEE ── */
+.marquee{background:var(--accent);color:#000;overflow:hidden;padding:18px 0;white-space:nowrap;position:relative;z-index:5}
+.marquee-track{display:inline-flex;gap:0;animation:marquee 25s linear infinite}
+.marquee span{font-family:var(--serif);font-size:clamp(28px,4vw,56px);font-weight:400;padding:0 24px;letter-spacing:-.01em}
+.marquee span .c{font-size:.7em;vertical-align:super;margin-right:8px}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── SECTION COMMON ── */
+section{position:relative;padding:120px 60px;overflow:hidden}
+.sec-label{font-size:12px;color:var(--muted);letter-spacing:.05em;margin-bottom:16px}
+.sec-label .sym{color:var(--accent)}
+.sec-title{font-family:var(--serif);font-weight:400;font-size:clamp(36px,5vw,80px);line-height:1;letter-spacing:-.01em;margin-bottom:48px;transition:color .3s}
+.sec-title .muted{color:var(--dim)}
+.sec-title:hover{color:var(--accent)}
+.sec-right-label{position:absolute;top:120px;right:60px;font-size:11px;color:var(--dim);letter-spacing:.1em}
+.sec-divider{height:1px;background:var(--line);margin-bottom:40px}
+
+/* ── COURSES (with photos, ref image 1 style) ── */
+.works-list{position:relative;z-index:2}
+.work-item{display:grid;grid-template-columns:60px 1fr 200px;align-items:center;padding:28px 0;border-bottom:1px solid var(--line);transition:all .4s cubic-bezier(.23,1,.32,1);position:relative;overflow:hidden}
+.work-item:first-child{border-top:1px solid var(--line)}
+.work-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .4s cubic-bezier(.23,1,.32,1);z-index:0;box-shadow:0 0 20px var(--accent-glow)}
+.work-item:hover::before{width:4px}
+.work-item::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .4s;z-index:0}
+.work-item:hover::after{opacity:1}
+.work-item > *{position:relative;z-index:1}
+.work-item .num{font-size:14px;color:var(--dim);font-family:var(--serif);transition:all .4s}
+.work-item:hover .num{color:var(--accent);transform:scale(1.3);transform-origin:left}
+.work-item .name{font-family:var(--serif);font-size:clamp(22px,2.6vw,38px);font-weight:400;transition:all .4s}
+.work-item:hover .name{color:var(--accent);transform:translateX(16px);text-shadow:0 0 20px var(--accent-glow)}
+.work-item .photo{width:180px;height:100px;overflow:hidden;opacity:0;transform:translateX(30px);transition:all .5s cubic-bezier(.23,1,.32,1);border:1px solid var(--line)}
+.work-item .photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(.8) contrast(1.1);transition:filter .4s,transform .4s}
+.work-item:hover .photo{opacity:1;transform:translateX(0)}
+.work-item:hover .photo img{filter:grayscale(0) contrast(1.05);transform:scale(1.05)}
+/* star dots decoration like ref image 1 */
+.work-item .stars{position:absolute;right:220px;top:0;bottom:0;width:60px;pointer-events:none;z-index:0}
+.work-item .stars i{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;opacity:.4}
+
+/* ── MANIFESTO ── */
+.manifesto{padding:100px 60px 0;text-align:center;position:relative}
+.manifesto-statement{font-family:var(--serif);font-weight:400;font-size:clamp(20px,2.8vw,40px);line-height:1.3;letter-spacing:-.01em;max-width:1100px;margin:0 auto;min-height:180px}
+.manifesto-statement .muted{color:var(--dim)}
+.manifesto-statement .accent{color:var(--accent);text-shadow:0 0 30px var(--accent-glow)}
+.manifesto-statement .type-cursor{display:inline-block;width:3px;height:1em;background:var(--accent);margin-left:4px;vertical-align:text-bottom;animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Be Real section - full screen ascii bg */
+.bereal-section{position:relative;width:100%;height:100vh;min-height:600px;display:grid;place-items:center;overflow:hidden;padding:0}
+.bereal-ascii{position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%}
+.bereal-content{position:relative;z-index:2;text-align:center}
+.bereal-content div{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,100px);line-height:1.15;letter-spacing:-.01em;transition:text-shadow .3s}
+.bereal-content div:hover{text-shadow:0 0 40px var(--accent-glow)}
+.bereal-content div .sym{color:var(--accent);font-size:.55em;vertical-align:super;margin-left:8px}
+
+/* ── SKILLS ── */
+.skills{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:start}
+.skills-left .sec-title{margin-bottom:24px}
+.skills-left .bar{width:60%;height:4px;background:var(--dim);margin:24px 0;position:relative;overflow:hidden}
+.skills-left .bar::after{content:"";position:absolute;inset:0;background:var(--accent);transform:translateX(-100%);animation:barFill 2s .5s forwards;box-shadow:0 0 10px var(--accent)}
+@keyframes barFill{to{transform:translateX(-30%)}}
+.skills-left p{font-size:14px;color:var(--muted);max-width:320px;line-height:1.8}
+.skills-left .big-arrow{margin-top:40px;color:var(--dim);font-size:48px;line-height:1;transition:color .3s}
+.skills-left:hover .big-arrow{color:var(--accent)}
+.skill-group{margin-bottom:48px}
+.skill-group:last-child{margin-bottom:0}
+.skill-group-title{font-family:var(--serif);font-size:clamp(22px,2.4vw,36px);font-weight:400;margin-bottom:16px;transition:color .3s}
+.skill-group:hover .skill-group-title{color:var(--accent)}
+.skill-group .count{font-size:13px;color:var(--dim);margin-bottom:12px}
+.skill-row{display:grid;grid-template-columns:1fr 30px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--muted);transition:all .3s;position:relative;overflow:hidden}
+.skill-row::before{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--accent);transition:width .4s;box-shadow:0 0 8px var(--accent)}
+.skill-row:hover{color:var(--ink);padding-left:12px}
+.skill-row:hover::before{width:100%}
+.skill-row .idx{text-align:right;color:var(--dim);font-size:13px;transition:color .3s}
+.skill-row:hover .idx{color:var(--accent)}
+
+/* ── PLANS ── */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.plan-card{background:var(--bg);padding:40px 32px;position:relative;transition:all .4s;overflow:hidden}
+.plan-card::before{content:"";position:absolute;top:0;left:0;right:0;height:0;background:var(--accent);transition:height .4s;z-index:0;box-shadow:0 0 20px var(--accent-glow)}
+.plan-card:hover::before{height:3px}
+.plan-card:hover{background:var(--bg-2);transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.plan-card > *{position:relative;z-index:1}
+.plan-card.hot{background:var(--bg-2)}
+.plan-card.hot::before{height:3px}
+.plan-card.hot::after{content:"";position:absolute;top:16px;right:16px;width:10px;height:10px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 12px var(--accent)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.8)}}
+.plan-name{font-family:var(--serif);font-size:22px;font-weight:400;margin-bottom:8px}
+.plan-price{font-family:var(--serif);font-size:48px;font-weight:400;margin:16px 0 4px;transition:color .3s}
+.plan-price small{font-size:14px;color:var(--muted);font-family:var(--sans)}
+.plan-card:hover .plan-price{color:var(--accent);text-shadow:0 0 20px var(--accent-glow)}
+.plan-card.hot .plan-price{color:var(--accent)}
+.plan-per{font-size:12px;color:var(--muted);margin-bottom:24px}
+.plan-features{list-style:none;margin-bottom:32px}
+.plan-features li{font-size:13px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--line);transition:all .3s}
+.plan-card:hover .plan-features li{color:var(--ink)}
+.plan-btn{display:block;text-align:center;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px;border:1px solid var(--line);color:var(--ink);transition:all .3s;position:relative;overflow:hidden}
+.plan-btn::before{content:"";position:absolute;inset:0;background:var(--accent);transform:translateY(101%);transition:transform .3s;z-index:-1}
+.plan-btn:hover{border-color:var(--accent);color:#000;box-shadow:0 0 20px var(--accent-dim)}
+.plan-btn:hover::before{transform:translateY(0)}
+.plan-card.hot .plan-btn{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.plan-card.hot .plan-btn::before{display:none}
+
+/* ── FAQ ── */
+.faq-list{max-width:800px}
+.faq-item{border-bottom:1px solid var(--line);position:relative}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:24px 0;text-align:left;font-family:var(--serif);font-size:clamp(18px,2vw,26px);font-weight:400;cursor:pointer;transition:color .2s;position:relative}
+.faq-q:hover{color:var(--accent)}
+.faq-q .sym{color:var(--accent);font-size:18px;margin-left:16px;flex-shrink:0;transition:transform .4s}
+.faq-item.open .faq-q .sym{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .5s ease;color:var(--muted);font-size:14px;line-height:1.8}
+.faq-item.open .faq-a{max-height:300px;padding-bottom:24px}
+
+/* ── CTA ── */
+.cta-section{text-align:center;padding:160px 60px 120px;position:relative;overflow:hidden}
+.cta-title{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,110px);line-height:1;letter-spacing:-.01em;margin-bottom:24px}
+.cta-title .accent{color:var(--accent);text-shadow:0 0 30px var(--accent-glow)}
+.cta-sub{font-size:15px;color:var(--muted);max-width:480px;margin:0 auto 48px}
+.cta-btn{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--ink);padding:16px 32px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;transition:all .3s;position:relative;overflow:hidden}
+.cta-btn::before{content:"";position:absolute;inset:0;background:var(--accent);transform:translateX(-101%);transition:transform .4s;z-index:-1}
+.cta-btn:hover{color:#000;border-color:var(--accent)}
+.cta-btn:hover::before{transform:translateX(0)}
+.cta-btn .arrow{width:20px;height:20px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--line);padding:40px 60px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted);position:relative;z-index:2}
+footer a:hover{color:var(--accent)}
+.footer-links{display:flex;gap:24px}
+
+/* reveal - bidirectional */
+.rv{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.rv.in{opacity:1;transform:none}
+
+@media(max-width:900px){
+  nav{padding:14px 20px}
+  .nav-center{display:none}
+  .nav-logo .logo-text{display:none}
+  .nav-logo .logo-mark{width:48px;height:48px}
+  .hero{grid-template-columns:1fr;padding:100px 20px 100px;gap:32px}
+  .hero-bottom{left:20px;right:20px;flex-wrap:wrap;gap:12px}
+  section{padding:80px 20px}
+  .manifesto{padding:80px 20px 0}
+  .bereal-section{height:80vh;min-height:500px}
+  .cta-section{padding:100px 20px}
+  .skills{grid-template-columns:1fr;gap:32px}
+  .plans-grid{grid-template-columns:1fr}
+  .sec-right-label{display:none}
+  .work-item{grid-template-columns:50px 1fr}
+  .work-item .photo{display:none}
+  .work-item .stars{display:none}
+  .dumbbell-cursor,.db-trail{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- cursor trails -->
+<div class="db-trail" id="trail1"></div>
+<div class="db-trail" id="trail2"></div>
+<div class="db-trail" id="trail3"></div>
+<div class="db-trail" id="trail4"></div>
+<div class="dumbbell-cursor" id="dbCursor">
+  <img src="https://aka.doubaocdn.com/s/Rug6zxy7k9" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 8px rgba(204,255,0,.5))">
+</div>
+
+<canvas id="stars"></canvas>
+
+<nav>
+  <a class="nav-logo" href="#top">
+    <div class="logo-mark">
+      <img src="https://aka.doubaocdn.com/s/Rug6zxy7k9" alt="型动健身" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 12px rgba(204,255,0,.3))">
+    </div>
+    <div class="logo-text">型动<small>XINGDONG FIT</small></div>
+  </a>
+  <div class="nav-center">
+    <a href="#top">Home</a>
+    <a href="#about">About <span class="sym">*</span></a>
+    <a href="#courses">Works <span class="sym">//</span></a>
+  </div>
+  <a class="nav-talk" href="#cta">Let's talk <span class="sym">↗</span></a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-photo rv">
+    <div class="frame">
+      <img src="https://aka.doubaocdn.com/s/HYpGloVL1e" alt="fitness">
+      <span class="frame-tag">/ 2026 /</span>
+    </div>
+  </div>
+  <div class="hero-text">
+    <div class="hero-label">(About me <span class="sym">*</span>)</div>
+    <h1 class="hero-title" id="hero-title"></h1>
+    <p class="hero-sub">我们相信好的训练不需要健身房，不需要复杂器械，只需要一张瑜伽垫和 20 分钟。AI 生成专属计划，3D 动作讲透再练，语音督导像私教在旁边喊你。</p>
+    <a class="hero-cta" href="#courses">开始训练 <span>→</span></a>
+    <div class="hero-meta">
+      <span><strong>500+</strong>3D 动作库</span>
+      <span><strong>21 天</strong>AI 定制计划</span>
+      <span><strong>10–30 分钟</strong>碎片化课程</span>
+    </div>
+  </div>
+  <div class="hero-bottom">
+    <span class="year">/ 2026 /</span>
+    <span class="scroll">Scroll down</span>
+    <a class="start-btn" href="#courses">START THE PROJECT <span class="arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span><span class="c">©</span>型动健身</span>
+    <span><span class="c">©</span>XINGDONG FIT</span>
+    <span><span class="c">©</span>AI 定制训练</span>
+    <span><span class="c">©</span>居家健身</span>
+    <span><span class="c">©</span>型动健身</span>
+    <span><span class="c">©</span>XINGDONG FIT</span>
+    <span><span class="c">©</span>AI 定制训练</span>
+    <span><span class="c">©</span>居家健身</span>
+  </div>
+</div>
+
+<!-- MANIFESTO STATEMENT (typewriter, ref image 2) -->
+<section class="manifesto" id="about">
+  <p class="manifesto-statement" id="typewriter"></p>
+</section>
+
+<!-- BE REAL (full screen ascii) -->
+<section class="bereal-section">
+  <canvas class="bereal-ascii" id="berealAscii"></canvas>
+  <div class="bereal-content rv">
+    <div>Be Real <span class="sym">*</span></div>
+    <div>Be Strong <span class="sym">#</span></div>
+    <div>Be Bold <span class="sym">™</span></div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section id="courses">
+  <div class="sec-right-label">(GPT® — 579)</div>
+  <div class="sec-label rv">/ From zero to one /</div>
+  <h2 class="sec-title rv">My Recently<br><span class="muted">Selected Courses</span></h2>
+  <div class="sec-divider"></div>
+  <div class="works-list">
+    <div class="work-item rv">
+      <span class="num">(01)</span>
+      <span class="name">极速暴汗燃脂</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/uZZ3MTebAR" alt=""></div>
+      <span class="stars"><i style="top:20%;left:10%"></i><i style="top:60%;left:40%;width:2px;height:2px"></i><i style="top:35%;left:70%"></i></span>
+    </div>
+    <div class="work-item rv">
+      <span class="num">(02)</span>
+      <span class="name">上肢推力塑形</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/Xn5TMu5ZUE" alt=""></div>
+      <span class="stars"><i style="top:30%;left:20%"></i><i style="top:70%;left:55%;width:2px;height:2px"></i></span>
+    </div>
+    <div class="work-item rv">
+      <span class="num">(03)</span>
+      <span class="name">晨间唤醒流瑜伽</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/0xe3CVz0I2" alt=""></div>
+      <span class="stars"><i style="top:15%;left:30%"></i><i style="top:50%;left:60%;width:2px;height:2px"></i><i style="top:80%;left:15%"></i></span>
+    </div>
+    <div class="work-item rv">
+      <span class="num">(04)</span>
+      <span class="name">腹肌雕刻专项</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/UtgSM2sviF" alt=""></div>
+      <span class="stars"><i style="top:25%;left:50%"></i><i style="top:65%;left:80%"></i></span>
+    </div>
+    <div class="work-item rv">
+      <span class="num">(05)</span>
+      <span class="name">睡前助眠拉伸</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/myotiC4UcE" alt=""></div>
+      <span class="stars"><i style="top:40%;left:25%;width:2px;height:2px"></i><i style="top:75%;left:65%"></i></span>
+    </div>
+    <div class="work-item rv">
+      <span class="num">(06)</span>
+      <span class="name">居家哑铃全身循环</span>
+      <div class="photo"><img src="https://aka.doubaocdn.com/s/E2ZiKt5AIu" alt=""></div>
+      <span class="stars"><i style="top:20%;left:60%"></i><i style="top:55%;left:30%"></i><i style="top:85%;left:75%;width:2px;height:2px"></i></span>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section>
+  <div class="skills">
+    <div class="skills-left rv">
+      <h2 class="sec-title">Training<br>skill sets</h2>
+      <div class="bar"></div>
+      <div class="sec-label">(GPT® — 579)</div>
+      <p>从计划生成到动作指导，从语音跟练到营养搭配，型动健身提供端到端的训练体验。</p>
+      <div class="big-arrow">↱</div>
+    </div>
+    <div class="skills-right rv">
+      <div class="skill-group">
+        <div class="skill-group-title">AI 训练系统</div>
+        <div class="count">(04)</div>
+        <div class="skill-row"><span>AI 定制 21 天计划</span><span class="idx">1</span></div>
+        <div class="skill-row"><span>智能强度调整</span><span class="idx">2</span></div>
+        <div class="skill-row"><span>训练数据复盘</span><span class="idx">3</span></div>
+        <div class="skill-row"><span>进度可视化</span><span class="idx">4</span></div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">动作指导</div>
+        <div class="count">(03)</div>
+        <div class="skill-row"><span>500+ 3D 动作演示</span><span class="idx">1</span></div>
+        <div class="skill-row"><span>目标肌群高亮</span><span class="idx">2</span></div>
+        <div class="skill-row"><span>常见错误提醒</span><span class="idx">3</span></div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">跟练体验</div>
+        <div class="count">(03)</div>
+        <div class="skill-row"><span>语音督导跟练</span><span class="idx">1</span></div>
+        <div class="skill-row"><span>节拍呼吸提醒</span><span class="idx">2</span></div>
+        <div class="skill-row"><span>营养师健身食谱</span><span class="idx">3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section id="plans">
+  <div class="sec-label rv">/ Membership /</div>
+  <h2 class="sec-title rv">选择你的<span class="muted">计划</span></h2>
+  <div class="plans-grid">
+    <div class="plan-card rv">
+      <div class="plan-name">月度会员</div>
+      <div class="plan-price">$6.99<small> /月</small></div>
+      <div class="plan-per">按月订阅，随时取消</div>
+      <ul class="plan-features">
+        <li>全部课程无限看</li>
+        <li>500+ 3D 动作详解</li>
+        <li>AI 定制训练计划</li>
+        <li>训练数据记录</li>
+      </ul>
+      <a class="plan-btn" href="#cta">在 App 中开通</a>
+    </div>
+    <div class="plan-card hot rv">
+      <div class="plan-name">21 天挑战赛</div>
+      <div class="plan-price">$24.99</div>
+      <div class="plan-per">一次性，21 天陪跑</div>
+      <ul class="plan-features">
+        <li>含月度会员全部权益</li>
+        <li>21 天定制打卡计划</li>
+        <li>营养师健身食谱</li>
+        <li>训练复盘与进度调整</li>
+        <li>专属社群打卡</li>
+      </ul>
+      <a class="plan-btn" href="#cta">立即开始 →</a>
+    </div>
+    <div class="plan-card rv">
+      <div class="plan-name">年度 100 次</div>
+      <div class="plan-price">$19.99</div>
+      <div class="plan-per">12 个月有效期</div>
+      <ul class="plan-features">
+        <li>100 次课程解锁</li>
+        <li>适合每周练 2 次</li>
+        <li>不自动续费</li>
+        <li>动作库无限看</li>
+      </ul>
+      <a class="plan-btn" href="#cta">在 App 中开通</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="sec-label rv">/ FAQ /</div>
+  <h2 class="sec-title rv">常见<span class="muted">问题</span></h2>
+  <div class="faq-list">
+    <div class="faq-item rv">
+      <button class="faq-q">没有健身基础能跟练吗？<span class="sym">+</span></button>
+      <div class="faq-a">可以。课程按初级/中级/进阶分级，AI 计划会从你的当前水平开始。每个动作都有 3D 演示和常见错误提醒，新手不会练伤。</div>
+    </div>
+    <div class="faq-item rv">
+      <button class="faq-q">需要什么器械？<span class="sym">+</span></button>
+      <div class="faq-a">大部分课程无器械即可完成，一张瑜伽垫就够。力量课程可选配哑铃或弹力带，App 会按你手头的器械调整动作。</div>
+    </div>
+    <div class="faq-item rv">
+      <button class="faq-q">怎么取消自动续费？<span class="sym">+</span></button>
+      <div class="faq-a">订阅通过苹果 App Store 扣费。在 iPhone「设置 → Apple ID → 订阅」中找到型动健身即可取消，取消后当前周期内仍可使用。</div>
+    </div>
+    <div class="faq-item rv">
+      <button class="faq-q">Web 端和 App 数据互通吗？<span class="sym">+</span></button>
+      <div class="faq-a">登录同一账号后，训练记录和订阅状态两端同步。Web 端提供课程浏览和免费试看，完整跟练体验建议使用 App。</div>
+    </div>
+    <div class="faq-item rv">
+      <button class="faq-q">退款政策是什么？<span class="sym">+</span></button>
+      <div class="faq-a">订阅退款由苹果 App Store 处理。如对课程不满意，可在购买后 7 天内通过报告问题页面申请退款。</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <h2 class="cta-title rv">今天，<br><span class="accent">动起来</span></h2>
+  <p class="cta-sub rv">下载型动健身 App，3 节体验课免费。不用办卡，不用等，一张瑜伽垫就够。</p>
+  <a class="cta-btn rv" href="#">前往 App Store 下载 <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></a>
+</section>
+
+<footer>
+  <div>© 2026 LiZheFit Inc. · 西安立哲酷酷软件科技有限公司</div>
+  <div class="footer-links">
+    <a href="#">用户协议</a><a href="#">隐私政策</a><a href="#">自动续费说明</a>
+  </div>
+</footer>
+
+<script>
+/* ========== HERO TITLE STAGGER ========== */
+const titleEl=document.getElementById('hero-title');
+const titleHTML='型动健身，<br><em>你的</em> AI 私教<br>基于<span class="accent">居家训练</span>。';
+let charIdx=0;
+function splitTitle(html){
+  const temp=document.createElement('div');temp.innerHTML=html;
+  function walk(node){
+    let out='';
+    node.childNodes.forEach(n=>{
+      if(n.nodeType===3){
+        n.textContent.split('').forEach(ch=>{
+          out+=`<span class="char" style="animation-delay:${0.4+charIdx*0.045}s">${ch===' '?'&nbsp;':ch}</span>`;
+          charIdx++;
+        });
+      }else if(n.nodeName==='BR'){out+='<br>'}
+      else{
+        const cls=n.className?` class="${n.className}"`:'';
+        out+=`<${n.nodeName.toLowerCase()}${cls}>${walk(n)}</${n.nodeName.toLowerCase()}>`;
+      }
+    });
+    return out;
+  }
+  return walk(temp);
+}
+titleEl.innerHTML=splitTitle(titleHTML);
+
+/* ========== DUMBBELL CURSOR with TRAIL ========== */
+const dbCursor=document.getElementById('dbCursor');
+const trails=[document.getElementById('trail1'),document.getElementById('trail2'),document.getElementById('trail3'),document.getElementById('trail4')];
+const trailSVG='<img src="https://aka.doubaocdn.com/s/Rug6zxy7k9" style="width:100%;height:100%;object-fit:contain;opacity:.7">';
+trails.forEach(t=>t.innerHTML=trailSVG);
+let dbx=0,dby=0,dbTx=0,dbTy=0;
+const trailPos=trails.map(()=>({x:0,y:0}));
+document.addEventListener('mousemove',e=>{dbTx=e.clientX;dbTy=e.clientY});
+function dbLoop(){
+  dbx+=(dbTx-dbx)*.12;dby+=(dbTy-dby)*.12;
+  dbCursor.style.left=dbx+'px';dbCursor.style.top=dby+'px';
+  // trails with increasing delay
+  let px=dbx,py=dby;
+  trails.forEach((t,i)=>{
+    const tp=trailPos[i];
+    const ease=.06+i*.015;
+    tp.x+=(px-tp.x)*ease;tp.y+=(py-tp.y)*ease;
+    t.style.left=tp.x+'px';t.style.top=tp.y+'px';
+    t.style.opacity=.3-i*.06;
+    px=tp.x;py=tp.y;
+  });
+  requestAnimationFrame(dbLoop);
+}
+dbLoop();
+document.querySelectorAll('a,button,.work-item,.skill-row,.plan-card,.faq-q').forEach(el=>{
+  el.addEventListener('mouseenter',()=>dbCursor.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>dbCursor.classList.remove('hover'));
+});
+
+/* ========== STARFIELD ========== */
+const sc=document.getElementById('stars'),sctx=sc.getContext('2d');
+let sw,sh,stars=[];
+function resizeS(){sw=sc.width=innerWidth;sh=sc.height=innerHeight}
+resizeS();addEventListener('resize',resizeS);
+for(let i=0;i<120;i++){stars.push({x:Math.random()*sw,y:Math.random()*sh,r:Math.random()*1.2+.3,a:Math.random()*.5+.2,tw:Math.random()*.02+.005})}
+function drawStars(){
+  sctx.clearRect(0,0,sw,sh);
+  stars.forEach(s=>{
+    s.a+=s.tw;if(s.a>1||s.a<.2)s.tw*=-1;
+    sctx.beginPath();sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sctx.fillStyle=`rgba(255,255,255,${s.a})`;sctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+/* ========== TYPEWRITER (bidirectional, re-triggers on scroll) ========== */
+const twEl=document.getElementById('typewriter');
+const twText='我们相信好的训练<span class="muted">不需要健身房</span>，不需要复杂器械，只需要<span class="accent">一张瑜伽垫</span>和 20 分钟。AI 生成专属计划，<span class="accent">3D</span> 动作<span class="muted">讲透再练</span>，<span class="muted">语音督导像私教在旁边喊你。</span>';
+let twTimer=null;
+function parseTwTokens(){
+  const tokens=[];
+  const re=/<[^>]+>|[^<]+/g;
+  let m;
+  while((m=re.exec(twText))!==null){
+    if(m[0].startsWith('<')){tokens.push({type:'tag',value:m[0]})}
+    else{m[0].split('').forEach(ch=>tokens.push({type:'char',value:ch}))}
+  }
+  return tokens;
+}
+function startTypewriter(){
+  if(twTimer)clearTimeout(twTimer);
+  const tokens=parseTwTokens();
+  let i=0;
+  twEl.innerHTML='<span class="type-cursor"></span>';
+  const cursor=twEl.querySelector('.type-cursor');
+  function step(){
+    if(i>=tokens.length){if(cursor)cursor.remove();return}
+    const t=tokens[i];
+    if(t.type==='tag'){
+      const temp=document.createElement('span');
+      temp.innerHTML=t.value;
+      twEl.insertBefore(temp.firstChild,cursor);
+    }else{
+      twEl.insertBefore(document.createTextNode(t.value),cursor);
+    }
+    i++;
+    twTimer=setTimeout(step,t.type==='tag'?0:55);
+  }
+  step();
+}
+function resetTypewriter(){
+  if(twTimer)clearTimeout(twTimer);
+  twTimer=null;
+  twEl.innerHTML='';
+}
+
+/* ========== BE REAL ASCII (full screen, 20% white) ========== */
+(function(){
+  const cv=document.getElementById('berealAscii');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const chars='#%*+!@$';
+  let W,H,cols,rows,grid=[];
+  const isMobile=innerWidth<768;
+  const cell=isMobile?24:16;
+  function resize(){
+    const rect=cv.parentElement.getBoundingClientRect();
+    W=cv.width=rect.width;H=cv.height=rect.height;
+    cols=Math.ceil(W/cell);rows=Math.ceil(H/cell);
+    grid=[];
+    for(let r=0;r<rows;r++){
+      const row=[];
+      for(let c=0;c<cols;c++){
+        row.push({ch:chars[Math.floor(Math.random()*chars.length)],timer:Math.random()*60,offset:Math.random()*Math.PI*2});
+      }
+      grid.push(row);
+    }
+  }
+  resize();
+  addEventListener('resize',resize);
+  let scrollVel=0,lastScroll=0;
+  addEventListener('scroll',()=>{
+    const s=scrollY;scrollVel=Math.min(Math.abs(s-lastScroll)*.25,12);lastScroll=s;
+  },{passive:true});
+  let t=0;
+  function draw(){
+    t+=.016;
+    ctx.clearRect(0,0,W,H);
+    const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.7);
+    g.addColorStop(0,'rgba(204,255,0,.1)');
+    g.addColorStop(1,'rgba(10,10,10,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.font=(isMobile?'16px':'11px')+' monospace';
+    ctx.fillStyle='rgba(255,255,255,.2)';
+    ctx.textBaseline='top';
+    const perturb=scrollVel*.5;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const co=grid[r][c];
+        co.timer--;
+        if(co.timer<=0){co.ch=chars[Math.floor(Math.random()*chars.length)];co.timer=30+Math.random()*90}
+        const wave=Math.sin(t*1.2+c*.25+r*.15+co.offset)*(.5+perturb*.1);
+        ctx.fillText(co.ch,c*cell+wave*2.5,r*cell+Math.cos(t+c*.15+r*.2)*1.5);
+      }
+    }
+    scrollVel*=.9;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ========== FAQ ========== */
+document.querySelectorAll('.faq-q').forEach(q=>q.addEventListener('click',()=>q.parentElement.classList.toggle('open')));
+
+/* ========== BIDIRECTIONAL REVEAL (triggers every scroll in/out) ========== */
+const rvIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('in')}
+    else{e.target.classList.remove('in')}
+  });
+},{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>rvIO.observe(el));
+
+/* parallax on scroll for sections */
+let ticking=false;
+addEventListener('scroll',()=>{
+  if(!ticking){
+    requestAnimationFrame(()=>{
+      const sy=scrollY;
+      document.querySelectorAll('.bereal-content').forEach(el=>{
+        const rect=el.parentElement.getBoundingClientRect();
+        if(rect.top<innerHeight&&rect.bottom>0){
+          const progress=(innerHeight-rect.top)/(innerHeight+rect.height);
+          el.style.transform=`translateY(${(progress-.5)*-40}px)`;
+        }
+      });
+      ticking=false;
+    });
+    ticking=true;
+  }
+},{passive:true});
+
+/* trigger typewriter - bidirectional, re-triggers on every scroll in */
+const twIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){startTypewriter()}
+    else{resetTypewriter()}
+  });
+},{threshold:.25});
+twIO.observe(twEl);
+</script>
+</body>
+</html>
